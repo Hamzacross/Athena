@@ -14,6 +14,7 @@ export type WorkspaceSectionKey = Section;
 
 interface Props {
   open: boolean;
+  closing: boolean;
   initialSection?: WorkspaceSectionKey;
   providerConfig: ProviderConfig;
   voiceSettings: VoiceSettings;
@@ -48,7 +49,7 @@ const NAV: { key: Section; label: string; icon: string }[] = [
   { key: "settings", label: "Settings", icon: "⚙" },
 ];
 
-export function Workspace({ open, initialSection, providerConfig, voiceSettings, assistantState, onProviderConfigChange, onVoiceSettingsChange, onClose }: Props) {
+export function Workspace({ open, closing, initialSection, providerConfig, voiceSettings, assistantState, onProviderConfigChange, onVoiceSettingsChange, onClose }: Props) {
   const [section, setSection] = useState<Section>(initialSection ?? "dashboard");
 
   useEffect(() => {
@@ -58,7 +59,7 @@ export function Workspace({ open, initialSection, providerConfig, voiceSettings,
   if (!open) return null;
 
   return (
-    <div className="ws-overlay" onMouseDown={onClose}>
+    <div className="ws-overlay" data-closing={closing} onMouseDown={closing ? undefined : onClose}>
       <div className="ws glass-strong" onMouseDown={(e) => e.stopPropagation()}>
         <aside className="ws__side">
           <div className="ws__brand">
@@ -98,7 +99,7 @@ export function Workspace({ open, initialSection, providerConfig, voiceSettings,
           ) : section === "files" ? (
             <Files />
           ) : section === "screenshots" ? (
-            <Screenshots />
+            <Screenshots providerConfig={providerConfig} />
           ) : section === "whiteboards" ? (
             <Whiteboard />
           ) : section === "skills" ? (

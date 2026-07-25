@@ -14,6 +14,9 @@ import "./App.css";
 
 const uid = () => Math.random().toString(36).slice(2, 9);
 const AUTO_LISTEN_DELAY = 650;
+const WORKSPACE_CLOSE_MS = 280;
+
+type ScreenshotResult = { path: string; ok: boolean; message: string };
 
 type LocalAction =
   | { type: "open-section"; section: WorkspaceSectionKey; message: string }
@@ -27,7 +30,7 @@ type LocalAction =
   | { type: "read-clipboard"; message: string }
   | { type: "write-clipboard"; text: string; message: string }
   | { type: "install-female-voice"; message: string }
-  | { type: "screenshot"; message: string }
+  | { type: "screenshot"; analyze: boolean; instruction: string; message: string }
   | { type: "whiteboard-command"; command: string; message: string }
   | { type: "student"; prompt: string };
 
@@ -47,6 +50,7 @@ const STUDENT_PROMPTS: Record<string, string> = {
 export default function App() {
   const [state, setState] = useState<AssistantState>("idle");
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
+  const [workspaceClosing, setWorkspaceClosing] = useState(false);
   const [initialSection, setInitialSection] = useState<WorkspaceSectionKey | undefined>();
   const [providerConfig, setProviderConfig] = useState<ProviderConfig>(() => loadProviderConfig());
   const [voiceSettings, setVoiceSettings] = useState(() => loadVoiceSettings());
@@ -58,6 +62,7 @@ export default function App() {
   const [pendingClarification, setPendingClarification] = useState<PendingClarification | null>(null);
   const idleTimer = useRef<number>(0);
   const autoListenTimer = useRef<number>(0);
+  const workspaceTimer = useRef<number>(0);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const wakeRecognitionRef = useRef<SpeechRecognition | null>(null);
   const stateRef = useRef<AssistantState>("idle");
@@ -74,11 +79,15 @@ export default function App() {
   }, [conversationMode]);
 
   const openSettingsPanel = useCallback(() => {
+    window.clearTimeout(workspaceTimer.current);
+    setWorkspaceClosing(false);
     setInitialSection("settings");
     setWorkspaceOpen(true);
   }, []);
 
   const openWorkspaceSection = useCallback((section: WorkspaceSectionKey) => {
+    window.clearTimeout(workspaceTimer.current);
+    setWorkspaceClosing(false);
     setInitialSection(section);
     setWorkspaceOpen(true);
   }, []);
@@ -86,17 +95,38 @@ export default function App() {
 
   const hideAthena = useCallback(async () => {
     setConversationMode(false);
-    setWorkspaceOpen(false);
-    setInitialSection(undefined);
     recognitionRef.current?.abort();
     window.speechSynthesis?.cancel();
     window.clearTimeout(autoListenTimer.current);
+    if (workspaceOpen) {
+      setWorkspaceClosing(true);
+      window.clearTimeout(workspaceTimer.current);
+      workspaceTimer.current = window.setTimeout(() => {
+        setWorkspaceOpen(false);
+        setWorkspaceClosing(false);
+        setInitialSection(undefined);
+        void invoke("hide_window").catch(() => undefined);
+      }, WORKSPACE_CLOSE_MS);
+      return;
+    }
     try {
       await invoke("hide_window");
     } catch {
       // Browser preview cannot hide a native window.
     }
-  }, []);
+  }, [workspaceOpen]);
+
+  const compactWorkspace = useCallback(() => {
+    if (!workspaceOpen) return;
+    setWorkspaceClosing(true);
+    window.clearTimeout(workspaceTimer.current);
+    workspaceTimer.current = window.setTimeout(() => {
+      setWorkspaceOpen(false);
+      setWorkspaceClosing(false);
+      setInitialSection(undefined);
+      void invoke("show_compact").catch(() => undefined);
+    }, WORKSPACE_CLOSE_MS);
+  }, [workspaceOpen]);
 
   const pushToast = useCallback((text: string, kind: ToastItem["kind"] = "ok") => {
     setToasts((t) => [...t, { id: uid(), text, kind }]);
@@ -218,11 +248,9 @@ export default function App() {
         return true;
       }
       if (action.type === "close-workspace") {
-        setWorkspaceOpen(false);
-        setInitialSection(undefined);
-        await invoke("show_compact");
         setVoiceStatus(action.message);
         say(action.message);
+        compactWorkspace();
         return true;
       }
       if (action.type === "windows-settings") {
@@ -284,11 +312,33 @@ export default function App() {
         return true;
       }
       if (action.type === "screenshot") {
+        if (action.analyze && !providerReady) {
+          pushToast("Set up your AI connection first", "info");
+          await invoke("open_settings");
+          openSettingsPanel();
+          return true;
+        }
         await invoke("open_workspace");
         openWorkspaceSection("screenshots");
-        const result = await invoke<{ message: string }>("take_screenshot");
-        setVoiceStatus(result.message);
-        say(action.message);
+        setState("thinking");
+        setVoiceStatus(action.analyze ? "Looking at your screen" : "Capturing your screen");
+        const screenshot = await invoke<ScreenshotResult>("take_screenshot");
+        if (!action.analyze) {
+          setState("idle");
+          setVoiceStatus(screenshot.message);
+          say(action.message);
+          return true;
+        }
+        const result = await invoke<ProviderTestResult>("analyze_screenshot", {
+          config: providerConfig,
+          path: screenshot.path,
+          instruction: action.instruction,
+        });
+        if (!result.ok) throw new Error(result.message);
+        pushToast(result.message, "ok");
+        await appendHistory({ kind: "assistant", title: "Screen explanation", detail: result.message, ok: true });
+        if (voiceSettings.engine === "piper") void speakWithPiper(result.message);
+        else speak(result.message);
         return true;
       }
       if (action.type === "whiteboard-command") {
@@ -299,14 +349,18 @@ export default function App() {
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      setVoiceStatus(message);
-      pushToast(message, "error");
-      say(`I could not do that. ${message}`);
+      const userMessage = action.type === "screenshot" && action.analyze
+        ? "I couldn't understand the screen with the current AI connection. Check that the selected model supports images."
+        : message;
+      setVoiceStatus(userMessage);
+      setState("idle");
+      pushToast(userMessage, "error");
+      say(userMessage);
       await appendHistory({ kind: "system", title: "Local command failed", detail: message, ok: false });
       return true;
     }
     return false;
-  }, [openWorkspaceSection, pushToast, say]);
+  }, [compactWorkspace, openSettingsPanel, openWorkspaceSection, providerConfig, providerReady, pushToast, say, speak, speakWithPiper, voiceSettings.engine]);
 
   const askClarification = useCallback((clarification: PendingClarification) => {
     setPendingClarification(clarification);
@@ -388,8 +442,11 @@ export default function App() {
     if (wantsOpen && normalized.includes("screenshots")) return { type: "open-section", section: "screenshots", message: "Opening screenshots." };
     if (wantsOpen && (normalized.includes("dashboard") || normalized.includes("home"))) return { type: "open-section", section: "dashboard", message: "Opening dashboard." };
 
-    if (normalized.includes("read my screen") || normalized.includes("take screenshot") || normalized.includes("capture screen") || normalized.includes("screenshot")) {
-      return { type: "screenshot", message: "I captured your screen. I can show it, but visual understanding needs a vision-capable provider." };
+    if (normalized.includes("read my screen") || normalized.includes("explain my screen") || normalized.includes("what is on my screen") || normalized.includes("what's on my screen")) {
+      return { type: "screenshot", analyze: true, instruction: text, message: "Looking at your screen." };
+    }
+    if (normalized.includes("take screenshot") || normalized.includes("capture screen") || normalized.includes("screenshot")) {
+      return { type: "screenshot", analyze: false, instruction: "", message: "Screenshot captured." };
     }
 
     if (wantsOpen && normalized.includes("youtube")) return { type: "open-url", url: "https://www.youtube.com", message: "Opening YouTube." };
@@ -480,7 +537,7 @@ export default function App() {
 
     setState("thinking");
     setVoiceStatus("Thinking");
-    pushToast("Contacting provider", "working");
+    pushToast("Working on that...", "working");
     try {
       const result = await invoke<ProviderTestResult>("send_message", {
         config: providerConfig,
@@ -488,8 +545,8 @@ export default function App() {
       });
 
       if (!result.ok) {
-        pushToast(result.message, "error");
-        setVoiceStatus(result.message);
+        pushToast("I couldn't complete that request. Check your AI connection in Settings.", "error");
+        setVoiceStatus("Request failed");
         setState("idle");
         return;
       }
@@ -499,8 +556,8 @@ export default function App() {
       if (voiceSettings.engine === "piper") void speakWithPiper(result.message);
       else speak(result.message);
     } catch (error) {
-      pushToast(error instanceof Error ? error.message : String(error), "error");
-      setVoiceStatus(error instanceof Error ? error.message : "Request failed");
+      pushToast("I couldn't complete that request. Check your connection and try again.", "error");
+      setVoiceStatus("Request failed");
       setState("idle");
     }
   }, [askClarification, executeLocalAction, openSettingsPanel, parseLocalCommand, pendingClarification, providerConfig, providerReady, pushToast, resolveClarification, say, speak, speakWithPiper, voiceSettings.engine]);
@@ -668,7 +725,7 @@ export default function App() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [hideAthena]);
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
@@ -712,7 +769,6 @@ export default function App() {
           {showWave && <Waveform state={state} />}
         </div>
         <div className="ambient__status" data-show={showWave}>{voiceStatus}</div>
-        <div className="ambient__provider" data-show={showWave}>{providerConfig.name} - {providerConfig.model || "No model"}</div>
         <div className="ambient__tools no-drag">
           <button className="ambient__tool" onClick={() => void openSettings()} aria-label="Open settings">
             Settings
@@ -727,6 +783,7 @@ export default function App() {
       <Toast toasts={toasts} onDismiss={dismissToast} />
       <Workspace
         open={workspaceOpen}
+        closing={workspaceClosing}
         initialSection={initialSection}
         providerConfig={providerConfig}
         voiceSettings={voiceSettings}

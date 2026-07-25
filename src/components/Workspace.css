@@ -5,12 +5,24 @@
   display: grid;
   place-items: center;
   background: transparent;
-  animation: ws-fade 0.3s var(--ease);
+  --ws-origin-x: 50%;
+  --ws-origin-y: calc(100% - 76px);
+  animation: ws-reveal 460ms var(--ease) both;
 }
 
-@keyframes ws-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.ws-overlay[data-closing="true"] {
+  pointer-events: none;
+  animation: ws-conceal 280ms var(--ease) both;
+}
+
+@keyframes ws-reveal {
+  from { clip-path: circle(0 at var(--ws-origin-x) var(--ws-origin-y)); }
+  to { clip-path: circle(150vmax at var(--ws-origin-x) var(--ws-origin-y)); }
+}
+
+@keyframes ws-conceal {
+  from { clip-path: circle(150vmax at var(--ws-origin-x) var(--ws-origin-y)); }
+  to { clip-path: circle(0 at var(--ws-origin-x) var(--ws-origin-y)); }
 }
 
 .ws {
@@ -20,12 +32,30 @@
   display: grid;
   grid-template-columns: 216px 1fr;
   overflow: hidden;
-  animation: ws-rise 0.4s var(--ease);
+  animation: ws-rise 420ms var(--ease) both;
+}
+
+.ws-overlay[data-closing="true"] .ws {
+  animation: ws-settle-out 220ms ease-in both;
 }
 
 @keyframes ws-rise {
-  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
   to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes ws-settle-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(5px) scale(0.985); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-overlay,
+  .ws-overlay[data-closing="true"],
+  .ws,
+  .ws-overlay[data-closing="true"] .ws {
+    animation-duration: 1ms;
+  }
 }
 
 .ws__side {

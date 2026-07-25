@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
-import type { FileEntry } from "../types";
+import type { FileEntry, ProviderConfig, ProviderTestResult } from "../types";
 import "./Screenshots.css";
 
-export function Screenshots() {
+export function Screenshots({ providerConfig }: { providerConfig: ProviderConfig }) {
   const [items, setItems] = useState<FileEntry[]>([]);
   const [selected, setSelected] = useState<FileEntry | null>(null);
   const [message, setMessage] = useState("");
   const [imageError, setImageError] = useState("");
   const [viewerOpen, setViewerOpen] = useState(false);
+  const [analysis, setAnalysis] = useState("");
+  const [analyzing, setAnalyzing] = useState(false);
 
   const refresh = async () => {
     try {
@@ -33,6 +35,27 @@ export function Screenshots() {
     }
   };
 
+  const explain = async () => {
+    if (!selected || analyzing) return;
+    setAnalyzing(true);
+    setAnalysis("");
+    setMessage("Looking at this screenshot...");
+    try {
+      const result = await invoke<ProviderTestResult>("analyze_screenshot", {
+        config: providerConfig,
+        path: selected.path,
+        instruction: "Explain what is visible in this screenshot clearly. Read important text and point out anything that needs attention.",
+      });
+      if (!result.ok) throw new Error(result.message);
+      setAnalysis(result.message);
+      setMessage("Explanation ready");
+    } catch {
+      setMessage("This model could not understand the screenshot. Check that it supports images.");
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
   useEffect(() => {
     void refresh();
   }, []);
@@ -46,8 +69,14 @@ export function Screenshots() {
           <h2 className="ws-sec__title">Screenshots</h2>
           <p className="ws-sec__blurb">Capture your screen and keep it available in Athena.</p>
         </div>
-        <button className="shots__button no-drag" onClick={() => void capture()}>Capture</button>
+        <div className="shots__actions no-drag">
+          <button className="shots__button" onClick={() => void capture()}>Capture</button>
+          <button className="shots__button" disabled={!selected || analyzing} onClick={() => void explain()}>
+            {analyzing ? "Explaining..." : "Explain"}
+          </button>
+        </div>
       </div>
+      {analysis && <div className="shots__analysis glass">{analysis}</div>}
       <div className="shots__status">{message}</div>
       <div className="shots__body">
         <div className="shots__grid no-drag">

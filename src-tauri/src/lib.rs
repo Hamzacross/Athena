@@ -1,3 +1,4 @@
+use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
 use keyring::Entry;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -30,6 +31,7 @@ const AMY_MODEL_URL: &str = "https://huggingface.co/rhasspy/piper-voices/resolve
 const AMY_CONFIG_URL: &str = "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/medium/en_US-amy-medium.onnx.json?download=true";
 const AMY_MODEL: &str = "en_US-amy-medium.onnx";
 const AMY_CONFIG: &str = "en_US-amy-medium.onnx.json";
+const MAX_SCREENSHOT_BYTES: u64 = 20 * 1024 * 1024;
 
 struct AppState {
     pending_settings_open: Mutex<bool>,
@@ -402,6 +404,26 @@ async fn send_message(config: ProviderConfig, text: String, state: tauri::State<
 }
 
 #[tauri::command]
+async fn analyze_screenshot(
+    config: ProviderConfig,
+    path: String,
+    instruction: String,
+    state: tauri::State<'_, AppState>,
+) -> Result<ProviderTestResult, String> {
+    let image = read_screenshot(&path)?;
+    let prompt = if instruction.trim().is_empty() {
+        "Describe what is visible on this screen clearly. Read important text and call out anything that needs attention.".to_string()
+    } else {
+        instruction
+    };
+    let prompt = format!("Local context:\n{}\n\nScreen analysis request:\n{}", device_context_prompt(), prompt);
+    call_provider_with_image(&state.http_client, &config, prompt, image)
+        .await
+        .map(|reply| ProviderTestResult { ok: true, message: reply })
+        .or_else(|message| Ok(ProviderTestResult { ok: false, message }))
+}
+
+#[tauri::command]
 fn get_device_context() -> Result<DeviceContext, String> {
     Ok(device_context())
 }
@@ -701,6 +723,79 @@ async fn call_provider(client: &reqwest::Client, config: &ProviderConfig, text: 
         ProviderCompatibility::Anthropic => call_anthropic_compatible(client, config, base_url, &api_key, text).await,
         ProviderCompatibility::Gemini => call_gemini_compatible(client, config, base_url, &api_key, text).await,
     }
+}
+
+async fn call_provider_with_image(client: &reqwest::Client, config: &ProviderConfig, text: String, image: String) -> Result<String, String> {
+    let base_url = config.base_url.trim().trim_end_matches('/');
+    if base_url.is_empty() { return Err("Base URL is required.".into()); }
+    if config.model.trim().is_empty() { return Err("Model is required.".into()); }
+    let api_key = read_api_key(&config.id)?;
+    if config.requires_api_key && api_key.trim().is_empty() { return Err("API key is required for this provider.".into()); }
+
+    match config.compatibility {
+        ProviderCompatibility::OpenAi => call_openai_with_image(client, config, base_url, &api_key, text, image).await,
+        ProviderCompatibility::Anthropic => call_anthropic_with_image(client, config, base_url, &api_key, text, image).await,
+        ProviderCompatibility::Gemini => call_gemini_with_image(client, config, base_url, &api_key, text, image).await,
+    }
+}
+
+async fn call_openai_with_image(client: &reqwest::Client, config: &ProviderConfig, base_url: &str, api_key: &str, text: String, image: String) -> Result<String, String> {
+    let mut request = client.post(format!("{}/chat/completions", ensure_v1(base_url))).json(&json!({
+        "model": config.model,
+        "messages": [
+            { "role": "system", "content": SYSTEM_PROMPT },
+            { "role": "user", "content": [
+                { "type": "text", "text": text },
+                { "type": "image_url", "image_url": { "url": format!("data:image/png;base64,{image}") } }
+            ] }
+        ],
+        "temperature": 0.2,
+        "max_tokens": 700
+    }));
+    if !api_key.trim().is_empty() { request = request.bearer_auth(api_key); }
+    provider_image_response(request.send().await, ProviderCompatibility::OpenAi).await
+}
+
+async fn call_anthropic_with_image(client: &reqwest::Client, config: &ProviderConfig, base_url: &str, api_key: &str, text: String, image: String) -> Result<String, String> {
+    let request = client.post(format!("{}/messages", ensure_v1(base_url)))
+        .header("x-api-key", api_key)
+        .header("anthropic-version", "2023-06-01")
+        .json(&json!({
+            "model": config.model,
+            "max_tokens": 700,
+            "system": SYSTEM_PROMPT,
+            "messages": [{ "role": "user", "content": [
+                { "type": "image", "source": { "type": "base64", "media_type": "image/png", "data": image } },
+                { "type": "text", "text": text }
+            ] }]
+        }));
+    provider_image_response(request.send().await, ProviderCompatibility::Anthropic).await
+}
+
+async fn call_gemini_with_image(client: &reqwest::Client, config: &ProviderConfig, base_url: &str, api_key: &str, text: String, image: String) -> Result<String, String> {
+    let request = client.post(format!("{}/models/{}:generateContent?key={}", base_url, config.model.trim(), api_key.trim()))
+        .json(&json!({
+            "systemInstruction": { "parts": [{ "text": SYSTEM_PROMPT }] },
+            "contents": [{ "parts": [
+                { "text": text },
+                { "inlineData": { "mimeType": "image/png", "data": image } }
+            ] }],
+            "generationConfig": { "temperature": 0.2, "maxOutputTokens": 700 }
+        }));
+    provider_image_response(request.send().await, ProviderCompatibility::Gemini).await
+}
+
+async fn provider_image_response(response: Result<reqwest::Response, reqwest::Error>, compatibility: ProviderCompatibility) -> Result<String, String> {
+    let response = response.map_err(|e| e.to_string())?;
+    let status = response.status();
+    let body: Value = response.json().await.map_err(|e| e.to_string())?;
+    if !status.is_success() { return Err(provider_error(status.as_u16(), &body)); }
+    let text = match compatibility {
+        ProviderCompatibility::OpenAi => body["choices"][0]["message"]["content"].as_str(),
+        ProviderCompatibility::Anthropic => body["content"].as_array().and_then(|content| content.iter().find_map(|item| item["text"].as_str())),
+        ProviderCompatibility::Gemini => body["candidates"][0]["content"]["parts"].as_array().and_then(|parts| parts.iter().find_map(|part| part["text"].as_str())),
+    };
+    text.map(str::to_string).ok_or_else(|| "The AI service did not return an explanation.".to_string())
 }
 
 async fn call_openai_compatible(
@@ -1394,6 +1489,28 @@ fn capture_screen_with_powershell(path: &Path) -> Result<(), String> {
     }
 }
 
+fn validate_screenshot(path: &Path) -> Result<(), String> {
+    let metadata = fs::metadata(path).map_err(|_| "The screenshot was not created.".to_string())?;
+    if !metadata.is_file() || metadata.len() == 0 {
+        return Err("The screenshot is empty.".into());
+    }
+    if metadata.len() > MAX_SCREENSHOT_BYTES {
+        return Err("The screenshot is too large to analyze.".into());
+    }
+    let bytes = fs::read(path).map_err(|e| e.to_string())?;
+    if !bytes.starts_with(&[0x89, b'P', b'N', b'G', 0x0D, 0x0A, 0x1A, 0x0A]) {
+        return Err("The captured file is not a valid PNG screenshot.".into());
+    }
+    Ok(())
+}
+
+fn read_screenshot(path: &str) -> Result<String, String> {
+    let path = Path::new(path);
+    validate_screenshot(path)?;
+    let bytes = fs::read(path).map_err(|e| e.to_string())?;
+    Ok(BASE64.encode(bytes))
+}
+
 fn toggle_compact_window(app: &AppHandle) -> Result<(), String> {
     let window = app
         .get_webview_window(WINDOW_LABEL)
@@ -1508,6 +1625,7 @@ pub fn run() {
             has_provider_api_key,
             test_provider,
             send_message,
+            analyze_screenshot,
             get_device_context,
             get_history,
             append_history_entry,
