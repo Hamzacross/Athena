@@ -1,0 +1,117 @@
+.wb {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+}
+
+.wb__toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-right: 42px;
+}
+
+.wb__toolbar button {
+  padding: 7px 11px;
+  border-radius: var(--r-pill);
+  font-size: 0.78rem;
+  color: var(--text-mid);
+  background: rgba(155, 123, 255, 0.1);
+  border: 1px solid var(--glass-border);
+}
+.wb__toolbar button:hover,
+.wb__toolbar button.is-active {
+  color: var(--text-hi);
+  border-color: var(--violet-400);
+}
+
+.wb__toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--text-mid);
+}
+
+.wb__colors {
+  display: flex;
+  gap: 5px;
+}
+
+.wb__colors button {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.wb__canvas {
+  width: 100%;
+  flex: 1;
+  min-height: 360px;
+  border-radius: var(--r-md);
+  background: rgba(244, 241, 255, 0.06);
+  border: 1px solid var(--glass-border);
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.wb__canvas--hand {
+  cursor: grab;
+}
+
+.wb__toolbar button:disabled {
+  opacity: 0.45;
+}
+
+.wb__camera {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 164px;
+  overflow: hidden;
+  border-radius: var(--r-md);
+  background: rgba(11, 7, 19, 0.72);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 16px 46px rgba(0, 0, 0, 0.28);
+}
+
+.wb__camera video {
+  display: block;
+  width: 100%;
+  height: 112px;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.wb__camera span {
+  display: block;
+  padding: 7px 8px 2px;
+  color: var(--text-mid);
+  font-size: 0.68rem;
+}
+
+.wb__camera strong {
+  display: block;
+  padding: 0 8px 7px;
+  color: var(--violet-300);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.wb__handDot {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  border-radius: 50%;
+  background: rgba(78, 230, 168, 0.65);
+  border: 2px solid rgba(244, 241, 255, 0.88);
+  box-shadow: 0 0 24px rgba(78, 230, 168, 0.5);
+}

@@ -1,0 +1,84 @@
+/* Ambient assistant cluster — bottom-center, the only persistent UI */
+.ambient {
+  position: fixed;
+  left: 50%;
+  bottom: 44px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  z-index: 30;
+  transition: opacity 0.8s var(--ease);
+}
+
+.ambient--inactive {
+  opacity: 0.38;
+}
+
+.ambient__wave {
+  height: 34px;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease);
+}
+.ambient__wave[data-show="true"] {
+  opacity: 1;
+}
+
+.ambient__status {
+  min-height: 16px;
+  font-size: 0.72rem;
+  color: var(--text-lo);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.18s var(--ease), transform 0.18s var(--ease);
+}
+
+.ambient__status[data-show="true"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ambient__provider {
+  min-height: 14px;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.66rem;
+  color: rgba(196, 188, 224, 0.72);
+  opacity: 0;
+  transition: opacity 0.18s var(--ease);
+}
+.ambient__provider[data-show="true"] {
+  opacity: 1;
+}
+
+.ambient__tools {
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.18s var(--ease), transform 0.18s var(--ease);
+}
+.ambient:hover .ambient__tools,
+.ambient:focus-within .ambient__tools {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ambient__tool {
+  padding: 6px 10px;
+  border-radius: var(--r-pill);
+  font-size: 0.72rem;
+  color: var(--text-mid);
+  background: rgba(11, 7, 19, 0.58);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(18px);
+}
+.ambient__tool:hover {
+  color: var(--text-hi);
+  border-color: var(--violet-400);
+}

@@ -1,0 +1,135 @@
+.hist {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+}
+
+.hist__top,
+.hist__detailTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hist__search {
+  width: calc(100% - 42px);
+  background: rgba(11, 7, 19, 0.5);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  color: var(--text-hi);
+  outline: none;
+}
+
+.hist__body {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.78fr) minmax(280px, 1.22fr);
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.hist__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.hist__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: rgba(155, 123, 255, 0.08);
+  border: 1px solid var(--glass-border);
+  color: var(--text-mid);
+  text-align: left;
+}
+
+.hist__item.is-active,
+.hist__item:hover {
+  border-color: var(--violet-400);
+  color: var(--text-hi);
+}
+
+.hist__item strong {
+  font-size: 0.84rem;
+}
+
+.hist__item span {
+  font-size: 0.7rem;
+  color: var(--text-lo);
+}
+
+.hist__kind {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hist__detail {
+  min-width: 0;
+  overflow: hidden;
+  padding: 14px;
+  border-radius: var(--r-md);
+}
+
+.hist__detail h3 {
+  font-size: 1rem;
+  margin-top: 10px;
+}
+
+.hist__meta {
+  color: var(--text-lo);
+  font-size: 0.74rem;
+  margin: 4px 0 12px;
+}
+
+.hist__detail pre {
+  white-space: pre-wrap;
+  overflow: auto;
+  max-height: 390px;
+  font: inherit;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-mid);
+}
+
+.hist__button {
+  padding: 8px 12px;
+  border-radius: var(--r-pill);
+  background: rgba(155, 123, 255, 0.1);
+  border: 1px solid var(--glass-border);
+  color: var(--text-mid);
+}
+
+.hist__button:hover:not(:disabled) {
+  border-color: var(--violet-400);
+  color: var(--text-hi);
+}
+
+.hist__button:disabled {
+  opacity: 0.55;
+}
+
+.hist__ok {
+  color: var(--ok);
+  font-size: 0.74rem;
+}
+
+.hist__err {
+  color: var(--danger);
+  font-size: 0.74rem;
+}
+
+@media (max-width: 760px) {
+  .hist__body {
+    grid-template-columns: 1fr;
+  }
+}

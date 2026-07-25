@@ -1,0 +1,203 @@
+.set {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 12px;
+}
+
+.set__title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  padding: 0 2px;
+}
+
+.set__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 2px;
+}
+
+.set__group {
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.set__gtitle {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--violet-300);
+  margin-bottom: 8px;
+}
+
+.set__row,
+.set__field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(155, 123, 255, 0.08);
+}
+.set__field {
+  align-items: flex-start;
+  flex-direction: column;
+}
+.set__row:first-of-type,
+.set__field:first-of-type {
+  border-top: none;
+}
+
+.set__rowtext {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.set__label {
+  font-size: 0.88rem;
+  color: var(--text-hi);
+}
+
+.set__hint {
+  font-size: 0.74rem;
+  color: var(--text-lo);
+}
+
+.set__input {
+  background: rgba(11, 7, 19, 0.5);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-sm);
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  outline: none;
+  width: 100%;
+  max-width: 100%;
+  transition: border-color 0.2s var(--ease);
+}
+.set__input:focus {
+  border-color: var(--violet-400);
+}
+
+.set__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.set__chip {
+  padding: 7px 12px;
+  border-radius: var(--r-pill);
+  font-size: 0.78rem;
+  color: var(--text-mid);
+  background: rgba(155, 123, 255, 0.1);
+  border: 1px solid var(--glass-border);
+  transition: all 0.2s var(--ease);
+}
+.set__chip:hover {
+  color: var(--text-hi);
+  border-color: var(--violet-400);
+}
+.set__chip.is-active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--violet-500), var(--violet-600));
+  border-color: transparent;
+  box-shadow: 0 3px 12px rgba(124, 77, 255, 0.5);
+}
+
+.set__active {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: var(--r-sm);
+  background: rgba(11, 7, 19, 0.42);
+  border: 1px solid var(--glass-border);
+  font-size: 0.76rem;
+  color: var(--text-lo);
+}
+.set__active strong {
+  color: var(--text-hi);
+  font-size: 0.84rem;
+  text-align: right;
+}
+.set__active span:nth-child(even) {
+  text-align: right;
+}
+
+.set__actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.set__actions--left {
+  justify-content: flex-start;
+}
+
+.set__button {
+  padding: 8px 12px;
+  border-radius: var(--r-pill);
+  font-size: 0.78rem;
+  color: var(--text-mid);
+  background: rgba(155, 123, 255, 0.1);
+  border: 1px solid var(--glass-border);
+}
+.set__button:hover:not(:disabled) {
+  color: var(--text-hi);
+  border-color: var(--violet-400);
+}
+.set__button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+.set__button--primary {
+  color: #fff;
+  background: linear-gradient(135deg, var(--violet-500), var(--violet-600));
+  border-color: transparent;
+}
+
+.set__diagnostics {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.38fr) minmax(0, 1fr);
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: rgba(11, 7, 19, 0.42);
+  border: 1px solid var(--glass-border);
+  font-size: 0.74rem;
+  color: var(--text-lo);
+}
+.set__diagnostics code {
+  overflow-wrap: anywhere;
+  color: var(--text-mid);
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+}
+
+.set__status {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  font-size: 0.78rem;
+  color: var(--text-mid);
+  background: rgba(11, 7, 19, 0.45);
+  border: 1px solid var(--glass-border);
+}
+.set__status--ok {
+  color: var(--ok);
+}
+.set__status--error {
+  color: var(--danger);
+}

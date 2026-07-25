@@ -1,0 +1,185 @@
+.skills {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+}
+
+.skills__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.skills__tools {
+  display: flex;
+  gap: 8px;
+  padding-right: 42px;
+}
+
+.skills__tools button {
+  padding: 8px 11px;
+  border-radius: var(--r-pill);
+  color: var(--text-mid);
+  background: rgba(155, 123, 255, 0.1);
+  border: 1px solid var(--glass-border);
+}
+
+.skills__tools button:hover {
+  color: var(--text-hi);
+  border-color: var(--violet-400);
+}
+
+.skills__layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 210px;
+  gap: 12px;
+}
+
+.skills__graph {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: var(--r-md);
+  cursor: grab;
+  background: radial-gradient(circle at center, rgba(78, 230, 168, 0.1), rgba(155, 123, 255, 0.08) 38%, rgba(11, 7, 19, 0.28));
+}
+
+.skills__graph:active {
+  cursor: grabbing;
+}
+
+.skills__svg {
+  width: 100%;
+  height: 100%;
+  min-height: 440px;
+  transition: transform 0.12s ease-out;
+  transform-origin: center;
+}
+
+.skills__edge {
+  stroke: rgba(155, 123, 255, 0.28);
+  stroke-width: 1.4;
+}
+
+.skills__g {
+  cursor: pointer;
+  filter: url(#brainGlow);
+}
+
+.skills__g circle {
+  fill: rgba(11, 7, 19, 0.72);
+  stroke: rgba(155, 123, 255, 0.52);
+  stroke-width: 1.6;
+  transition: stroke 0.18s var(--ease), fill 0.18s var(--ease), transform 0.18s var(--ease);
+}
+
+.skills__g text {
+  fill: rgba(244, 241, 255, 0.92);
+  font-size: 13px;
+  font-weight: 700;
+  pointer-events: none;
+  text-transform: capitalize;
+}
+
+.skills__g:hover circle,
+.skills__g.is-selected circle {
+  fill: rgba(124, 77, 255, 0.32);
+  stroke: rgba(78, 230, 168, 0.9);
+  transform: scale(1.06);
+}
+
+.skills__g--core circle {
+  fill: rgba(78, 230, 168, 0.18);
+  stroke: rgba(78, 230, 168, 0.86);
+  animation: brain-core 3s ease-in-out infinite;
+}
+
+.skills__g--student circle {
+  stroke: rgba(255, 204, 102, 0.78);
+}
+
+.skills__g--topic circle {
+  stroke: rgba(77, 184, 255, 0.72);
+}
+
+.skills__g--activity circle {
+  stroke: rgba(255, 107, 139, 0.58);
+}
+
+.skills[data-mode="listening"] .skills__g--student circle,
+.skills[data-mode="thinking"] .skills__g--topic circle,
+.skills[data-mode="speaking"] .skills__g--core circle {
+  stroke-width: 3;
+  animation: brain-active 1.2s ease-in-out infinite;
+}
+
+.skills__inspect {
+  padding: 14px;
+  border-radius: var(--r-md);
+  min-width: 0;
+}
+
+.skills__type {
+  color: var(--violet-300);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.skills__inspect h3 {
+  margin: 8px 0;
+  font-size: 1.1rem;
+}
+
+.skills__inspect p {
+  color: var(--text-mid);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.skills__stats {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.skills__stats span {
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  color: var(--text-lo);
+  background: rgba(11, 7, 19, 0.38);
+  border: 1px solid rgba(155, 123, 255, 0.08);
+  font-size: 0.72rem;
+}
+
+@keyframes brain-core {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(78, 230, 168, 0.2)); }
+  50% { filter: drop-shadow(0 0 22px rgba(78, 230, 168, 0.54)); }
+}
+
+@keyframes brain-active {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+@media (max-width: 760px) {
+  .skills__head,
+  .skills__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .skills__head {
+    flex-direction: column;
+  }
+
+  .skills__tools {
+    padding-right: 0;
+    flex-wrap: wrap;
+  }
+}

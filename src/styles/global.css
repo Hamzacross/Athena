@@ -1,0 +1,83 @@
+@import "./theme.css";
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: transparent;
+  color: var(--text-hi);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Ambient app background — soft royal-purple aurora behind the glass */
+.app-backdrop {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(60% 50% at 20% 10%, rgba(124, 77, 255, 0.28), transparent 70%),
+    radial-gradient(55% 45% at 90% 20%, rgba(106, 47, 224, 0.22), transparent 70%),
+    radial-gradient(70% 60% at 60% 100%, rgba(83, 32, 176, 0.25), transparent 70%),
+    linear-gradient(160deg, var(--bg-0), var(--bg-1) 55%, var(--bg-2));
+  z-index: -1;
+}
+
+/* Glass surface utility */
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-md);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  box-shadow: var(--shadow-1), inset 0 1px 0 var(--glass-highlight);
+}
+
+.glass-strong {
+  background: var(--glass-bg-strong);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+  color: var(--text-hi);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(155, 123, 255, 0.28);
+  border-radius: var(--r-pill);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* App is draggable via this region (Tauri custom titlebar) */
+.drag {
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+.no-drag {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}

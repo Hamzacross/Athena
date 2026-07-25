@@ -1,0 +1,49 @@
+:root {
+  /* Royal purple palette */
+  --violet-50: #f3f0ff;
+  --violet-200: #c9b8ff;
+  --violet-300: #b39dff;
+  --violet-400: #9b7bff;
+  --violet-500: #7c4dff;
+  --violet-600: #6a2fe0;
+  --violet-700: #5320b0;
+
+  /* Surfaces (dark) */
+  --bg-0: #0b0713;
+  --bg-1: #130c22;
+  --bg-2: #1b1130;
+
+  /* Glass */
+  --glass-bg: rgba(35, 22, 66, 0.45);
+  --glass-bg-strong: rgba(45, 28, 82, 0.62);
+  --glass-border: rgba(155, 123, 255, 0.22);
+  --glass-highlight: rgba(255, 255, 255, 0.06);
+
+  /* Text */
+  --text-hi: #f4f1ff;
+  --text-mid: #c4bce0;
+  --text-lo: #8a80a8;
+
+  /* Accents / status */
+  --accent: var(--violet-500);
+  --accent-soft: rgba(124, 77, 255, 0.16);
+  --ok: #4ee6a8;
+  --warn: #ffcc66;
+  --danger: #ff6b8b;
+
+  /* Shape */
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-pill: 999px;
+
+  /* Shadow / glow */
+  --shadow-1: 0 8px 30px rgba(0, 0, 0, 0.45);
+  --glow: 0 0 40px rgba(124, 77, 255, 0.45);
+
+  /* Motion */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  color-scheme: dark;
+}

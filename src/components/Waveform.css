@@ -1,0 +1,21 @@
+.waveform {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 34px;
+  width: 180px;
+}
+
+.waveform span {
+  width: 3px;
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(180deg, var(--violet-200), var(--violet-500));
+  box-shadow: 0 0 8px rgba(124, 77, 255, 0.5);
+  will-change: height, opacity;
+}
+
+.waveform--speaking span {
+  background: linear-gradient(180deg, var(--violet-100, #e6dcff), var(--violet-400));
+}
