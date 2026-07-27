@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Athena - a lightweight desktop AI assistant",
+  "description": "Athena - a voice-first AI desktop assistant",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

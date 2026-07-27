@@ -1,0 +1,72 @@
+name: macOS universal build (test)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev]
+    paths:
+      - '.github/workflows/macos-universal.yml'
+      - 'src-tauri/tauri.conf.json'
+      - 'src-tauri/Cargo.toml'
+      - 'src-tauri/Cargo.lock'
+
+# contents:write lets the job attach the build to a GitHub prerelease.
+permissions:
+  contents: write
+
+jobs:
+  build-universal:
+    name: Build universal macOS app
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Rust (both Apple targets)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install frontend dependencies
+        run: npm install
+
+      - name: Build universal macOS binary
+        run: npm run tauri build -- --target universal-apple-darwin
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: athena-macos-universal
+          if-no-files-found: error
+          path: |
+            src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+            src-tauri/target/universal-apple-darwin/release/bundle/macos/*.app
+
+      - name: Attach DMG to test prerelease
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          DMG=$(ls src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg 2>/dev/null | head -n1)
+          if [ -z "$DMG" ]; then
+            echo "No DMG produced; skipping release upload."
+            exit 0
+          fi
+          echo "Attaching $DMG to prerelease v1.0.0-macos-test"
+          gh release create v1.0.0-macos-test \
+            --title "Athena v1.0.0 — macOS universal (test build)" \
+            --notes "Unsigned universal (Apple silicon + Intel) macOS test build, produced by CI. Not notarized. To open, right-click the app and choose Open, or run: xattr -dr com.apple.quarantine /Applications/Athena.app" \
+            --prerelease || true
+          gh release upload v1.0.0-macos-test "$DMG" --clobber

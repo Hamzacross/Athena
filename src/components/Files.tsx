@@ -4,7 +4,8 @@ import type { DeviceContext, FileEntry, FileReadResult } from "../types";
 import { appendHistory } from "../history";
 import "./Files.css";
 
-const defaultPath = "C:\\Users\\Tech Planet\\Documents";
+// Resolved to the user's home directory on any OS via the backend's expand_user_path.
+const defaultPath = "~";
 
 const formatSize = (size: number) => {
   if (size < 1024) return `${size} B`;
