@@ -9,6 +9,10 @@ on:
       - 'src-tauri/tauri.conf.json'
       - 'src-tauri/Cargo.toml'
       - 'src-tauri/Cargo.lock'
+      - 'src-tauri/src/**'
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
 
 # contents:write lets the job attach the build to a GitHub prerelease.
 permissions:

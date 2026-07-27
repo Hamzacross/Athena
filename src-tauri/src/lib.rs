@@ -1389,7 +1389,10 @@ fn app_alias_command(name: &str) -> Option<&'static str> {
 }
 
 fn installed_apps() -> Vec<InstalledApp> {
-    let mut apps = Vec::new();
+    // Explicit element type: on non-Windows the cfg block below is compiled
+    // out, so without this annotation the closure in sort_by can't infer the
+    // element type and the build fails (E0282).
+    let mut apps: Vec<InstalledApp> = Vec::new();
     #[cfg(target_os = "windows")]
     {
         let mut roots = Vec::new();
