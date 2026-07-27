@@ -7,13 +7,14 @@
 Ask questions, control local tools, understand what is on your screen, or open a
 whiteboard without keeping another chat window in the way.
 
+[![Release](https://img.shields.io/github/v/release/Hamzacross/Athena?include_prereleases)](https://github.com/Hamzacross/Athena/releases)
 [![Windows](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows&logoColor=white)](https://www.microsoft.com/windows)
 [![Tauri](https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=white)](https://tauri.app/)
 [![React](https://img.shields.io/badge/React-18-20232A?logo=react&logoColor=61DAFB)](https://react.dev/)
 [![Rust](https://img.shields.io/badge/Rust-backend-000000?logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![Issues](https://img.shields.io/github/issues/Hamzacross/Athena)](https://github.com/Hamzacross/Athena/issues)
 [![Stars](https://img.shields.io/github/stars/Hamzacross/Athena)](https://github.com/Hamzacross/Athena/stargazers)
-[![Last commit](https://img.shields.io/github/last-commit/Hamzacross/Athena/dev)](https://github.com/Hamzacross/Athena/commits/dev)
+[![Last commit](https://img.shields.io/github/last-commit/Hamzacross/Athena/main)](https://github.com/Hamzacross/Athena/commits/main)
 
 OpenAI-compatible APIs · Anthropic · Gemini · Ollama · LM Studio · Custom gateways
 
@@ -23,9 +24,10 @@ OpenAI-compatible APIs · Anthropic · Gemini · Ollama · LM Studio · Custom g
 
 ## Overview
 
-Athena stays near the bottom of the desktop as a small animated orb. Click it or
-say **"Hey Athena"** to start speaking. The assistant listens, works on the
-request, and answers aloud while keeping the interface intentionally minimal.
+Athena stays near the bottom of the desktop as a small animated orb bearing the
+Athena mark. Click it or say **"Hey Athena"** to start speaking. The assistant
+listens, works on the request, and answers aloud while keeping the interface
+intentionally minimal.
 
 When a task needs more space, Athena opens a glass workspace containing the
 whiteboard, screenshots, files, history, skills, and settings. The workspace
@@ -51,7 +53,9 @@ another OpenAI-compatible endpoint.
 
 ## Quick Start
 
-Athena is currently developed and tested as a Windows desktop application.
+Athena is currently developed and tested as a Windows desktop application. The
+latest prebuilt installer is available on the
+[Releases](https://github.com/Hamzacross/Athena/releases) page.
 
 ```powershell
 git clone https://github.com/Hamzacross/Athena.git
@@ -201,7 +205,7 @@ Athena/
 |   |-- App.tsx                 # Voice flow, local intent routing, assistant state
 |   |-- providerConfig.ts       # Provider presets and local configuration
 |   |-- components/
-|   |   |-- Orb.tsx             # Persistent ambient assistant control
+|   |   |-- Orb.tsx             # Ambient orb with the branded AthenaMark
 |   |   |-- Workspace.tsx       # Dashboard and feature navigation
 |   |   |-- Whiteboard.tsx      # Canvas and optional hand tracking
 |   |   |-- Screenshots.tsx     # Capture browser and image analysis
@@ -220,7 +224,7 @@ Athena/
 - A provider connection test verifies text requests; image support depends on the chosen model.
 - OpenAI-compatible local gateways vary in how closely they support multimodal request formats.
 - Speech recognition depends on support provided by the installed WebView.
-- The repository does not yet include an automated test suite for provider contracts or UI transitions.
+- Verification relies on build commands (`npm run build`, `cargo check`, `npm run tauri build`) and manual checks; an automated test suite for provider contracts and UI transitions is not yet included.
 - macOS and Linux native behavior has not been completed or verified.
 
 ## Contributing

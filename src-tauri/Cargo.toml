@@ -1,8 +1,8 @@
 [package]
 name = "athena"
-version = "0.1.0"
-description = "Athena - a lightweight desktop AI assistant"
-authors = ["you"]
+version = "1.0.0"
+description = "Athena - a voice-first AI desktop assistant for Windows"
+authors = ["Hamzacross"]
 edition = "2021"
 
 [lib]

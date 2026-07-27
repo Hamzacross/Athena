@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { AssistantState } from "../types";
+import { AthenaMark } from "./AthenaMark";
 import "./Orb.css";
 
 interface Props {
@@ -63,7 +64,7 @@ export function Orb({ state, size = 64, onClick }: Props) {
       <button className="orb__hit no-drag" onClick={onClick} aria-label={`Athena ${state}`}>
         <span className="orb__glow" />
         <span className="orb__core" ref={coreRef}>
-          <span className="orb__inner" />
+          <AthenaMark className="orb__mark" size={size} />
         </span>
       </button>
     </div>
