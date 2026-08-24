@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Athena - a voice-first AI desktop assistant",
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
